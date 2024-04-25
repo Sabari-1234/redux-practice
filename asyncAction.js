@@ -1,6 +1,8 @@
 //initial state
 
-const { createStore } = require("redux");
+const { default: axios } = require("axios");
+const { createStore, applyMiddleware } = require("redux");
+const { thunk } = require("redux-thunk");
 
 const initialState = {
   loding: false,
@@ -57,6 +59,39 @@ const reducer = (state = initialState, action) => {
   }
 };
 
+//funnction instead of object  by redux thunk in create store to perform async operations
+
+const fetchUser = () => {
+  return async (dispatch) => {
+    dispatch(fetchUserRequest());
+
+    //then catch(promise )
+    // axios
+    //   .get("https://662a055367df268010a24f31.mockapi.io/users")
+    //   .then((response) => {
+    //     dispatch(fetchUserSuccess(response.data.map((user) => user.id)));
+    //   })
+    //   .catch((err) => dispatch(fetchUserFailure(err.message)));
+
+    //try catch
+
+    try {
+      const response = await axios.get(
+        "https://662a055367df268010a24f31.mockapi.io/users"
+      );
+      dispatch(fetchUserSuccess(response.data.map((user) => user.id)));
+    } catch (err) {
+      dispatch(fetchUserFailure(err.message));
+    }
+  };
+};
+
 //store
 
-const store = createStore(reducer);
+const store = createStore(reducer, applyMiddleware(thunk));
+
+store.subscribe(() => {
+  console.log(store.getState());
+});
+
+store.dispatch(fetchUser());
